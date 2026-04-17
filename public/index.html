@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Brief</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080908;--bg2:#0e100e;--bg3:#141714;--bg4:#1c201c;
+  --green:#00e676;--green2:#69f0ae;--gfaint:rgba(0,230,118,0.07);--gborder:rgba(0,230,118,0.2);
+  --white:#f0f4f0;--white2:#a8b4a8;--white3:#4a564a;
+  --border:rgba(255,255,255,0.055);--border2:rgba(0,230,118,0.18);
+  --red:#ff5252;
+  --mono:'IBM Plex Mono',monospace;--sans:'Inter',sans-serif;
+}
+html,body{height:100%;background:var(--bg);color:var(--white);font-family:var(--sans);overflow:hidden}
+#root{display:flex;flex-direction:column;height:100vh}
+
+/* LOGIN */
+#login{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:200;transition:opacity .3s}
+.lcard{background:var(--bg2);border:1px solid var(--gborder);border-radius:16px;padding:44px 52px;width:400px;text-align:center}
+.llogo{font-family:var(--mono);font-size:22px;color:var(--green);letter-spacing:-1px;font-weight:600;margin-bottom:4px}
+.lsub{font-size:11px;color:var(--white3);margin-bottom:32px;letter-spacing:1px;text-transform:uppercase;font-family:var(--mono)}
+.avatars{display:flex;gap:8px;justify-content:center;margin-bottom:22px;flex-wrap:wrap}
+.av{width:40px;height:40px;border-radius:50%;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid var(--border);background:var(--bg3);transition:all .15s;user-select:none}
+.av:hover{border-color:var(--green);transform:scale(1.08)}
+.av.sel{border-color:var(--green);background:var(--gfaint);transform:scale(1.1)}
+.linput{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--white);font-family:var(--sans);font-size:14px;margin-bottom:12px;outline:none;transition:border-color .2s;font-weight:300}
+.linput:focus{border-color:var(--green)}
+.linput::placeholder{color:var(--white3)}
+.lbtn{width:100%;background:var(--green);border:none;border-radius:8px;padding:13px;color:#080908;font-family:var(--mono);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;letter-spacing:.5px}
+.lbtn:hover{background:var(--green2);transform:translateY(-1px)}
+
+/* HEADER */
+#hdr{height:46px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0}
+.logo{font-family:var(--mono);font-size:13px;color:var(--green);letter-spacing:-.5px;font-weight:600}
+.hdivider{width:1px;height:14px;background:var(--white3);opacity:.4}
+.rlabel{font-size:9px;color:var(--white3);letter-spacing:1.5px;text-transform:uppercase;font-family:var(--mono)}
+.hsp{flex:1}
+.uc{font-size:9px;color:var(--white3);display:flex;align-items:center;gap:5px;font-family:var(--mono)}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--green)}
+.mebadge{display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:3px 10px 3px 5px;font-size:10px;color:var(--white2)}
+
+/* LAYOUT */
+#app{flex:1;display:flex;min-height:0;overflow:hidden}
+
+/* LEFT — Queue */
+#left{width:220px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.ph{padding:10px 12px 8px;font-size:8px;font-family:var(--mono);letter-spacing:2px;color:var(--white3);text-transform:uppercase;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.pbadge{background:var(--bg4);border-radius:3px;padding:2px 6px;font-size:8px;color:var(--white3);font-family:var(--mono)}
+
+/* ADD AREA — tabs for YouTube / MP4 */
+#addarea{border-bottom:1px solid var(--border);flex-shrink:0}
+.add-tabs{display:flex;border-bottom:1px solid var(--border)}
+.add-tab{flex:1;padding:7px 0;font-size:8px;font-family:var(--mono);letter-spacing:1px;color:var(--white3);text-transform:uppercase;text-align:center;cursor:pointer;border:none;background:none;border-bottom:1px solid transparent;transition:all .15s}
+.add-tab:hover{color:var(--white2)}
+.add-tab.active{color:var(--green);border-bottom-color:var(--green)}
+.add-pane{display:none;padding:8px}
+.add-pane.active{display:block}
+.addrow{display:flex;gap:5px}
+.addinput{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:6px 8px;color:var(--white);font-family:var(--sans);font-size:11px;outline:none;min-width:0;transition:border-color .2s;font-weight:300}
+.addinput:focus{border-color:var(--green)}
+.addinput::placeholder{color:var(--white3);font-size:10px}
+.addbtn{background:var(--green);border:none;border-radius:5px;padding:6px 10px;color:#080908;font-size:10px;font-weight:600;cursor:pointer;flex-shrink:0;transition:background .15s;font-family:var(--mono)}
+.addbtn:hover{background:var(--green2)}
+.addbtn:disabled{opacity:.4;cursor:default}
+
+/* Upload area */
+#upload-drop{border:1px dashed var(--border);border-radius:6px;padding:14px 10px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+#upload-drop:hover,#upload-drop.dragover{border-color:var(--green);background:var(--gfaint)}
+#upload-drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-icon{font-size:20px;margin-bottom:4px;opacity:.5}
+.upload-txt{font-size:9px;color:var(--white3);font-family:var(--mono);letter-spacing:.5px}
+.upload-sub{font-size:8px;color:var(--white3);margin-top:2px;opacity:.6}
+#upload-progress{margin-top:7px;display:none}
+.prog-bar-wrap{height:2px;background:var(--bg4);border-radius:1px;overflow:hidden;margin-bottom:4px}
+.prog-bar-fill{height:100%;background:var(--green);width:0%;transition:width .3s}
+.prog-label{font-size:8px;color:var(--white3);font-family:var(--mono);text-align:center}
+
+/* Library */
+#lib-section{border-bottom:1px solid var(--border);flex-shrink:0}
+#lib-list{max-height:120px;overflow-y:auto;padding:4px}
+#lib-list::-webkit-scrollbar{width:2px}
+#lib-list::-webkit-scrollbar-thumb{background:var(--bg4)}
+.lib-item{display:flex;align-items:center;gap:7px;padding:5px 6px;border-radius:5px;cursor:pointer;transition:background .1s}
+.lib-item:hover{background:var(--bg3)}
+.lib-icon{font-size:14px;flex-shrink:0;opacity:.7}
+.lib-name{flex:1;font-size:9px;color:var(--white2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono)}
+.lib-size{font-size:8px;color:var(--white3);font-family:var(--mono);flex-shrink:0}
+.lib-add{background:none;border:1px solid var(--gborder);border-radius:3px;color:var(--green);font-size:8px;cursor:pointer;padding:2px 6px;font-family:var(--mono);flex-shrink:0;transition:background .1s}
+.lib-add:hover{background:var(--gfaint)}
+.lib-empty{font-size:9px;color:var(--white3);text-align:center;padding:12px;font-family:var(--mono)}
+
+#preview{background:var(--bg3);border:1px solid var(--border);border-radius:5px;margin-top:6px;overflow:hidden;display:none}
+.prev-item{display:flex;align-items:center;gap:7px;padding:6px 8px;cursor:pointer;transition:background .1s}
+.prev-item:hover{background:var(--bg4)}
+.prev-thumb{width:42px;height:28px;border-radius:3px;object-fit:cover;background:var(--bg4);flex-shrink:0}
+.prev-title{font-size:10px;color:var(--white);line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-weight:300}
+
+#qlist{flex:1;overflow-y:auto;padding:5px}
+#qlist::-webkit-scrollbar{width:2px}
+#qlist::-webkit-scrollbar-thumb{background:var(--bg4)}
+.qempty{text-align:center;color:var(--white3);font-size:9px;padding:24px 12px;line-height:1.9;font-family:var(--mono)}
+.qitem{display:flex;align-items:center;gap:7px;padding:6px;border-radius:5px;transition:background .1s;position:relative}
+.qitem:hover{background:var(--bg3)}
+.qitem:hover .qrm{opacity:1}
+.qitem.now{background:var(--gfaint);border:1px solid var(--gborder)}
+.qi-thumb{width:42px;height:28px;border-radius:3px;object-fit:cover;background:var(--bg4);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--white3)}
+.qi-info{flex:1;min-width:0}
+.qi-title{font-size:9px;color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:400}
+.qi-meta{font-size:8px;color:var(--white3);margin-top:2px;display:flex;gap:4px;align-items:center;font-family:var(--mono)}
+.nowbadge{font-size:6px;font-family:var(--mono);background:var(--green);color:#080908;padding:1px 4px;border-radius:2px;font-weight:600}
+.typebadge{font-size:6px;font-family:var(--mono);background:var(--bg4);color:var(--white3);padding:1px 4px;border-radius:2px}
+.qrm{opacity:0;background:none;border:none;color:var(--white3);cursor:pointer;font-size:12px;padding:2px;flex-shrink:0;line-height:1;transition:color .1s}
+.qrm:hover{color:var(--red)}
+
+/* CENTER */
+#center{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}
+#progwrap{height:2px;background:var(--bg4);flex-shrink:0;position:relative;cursor:pointer}
+#prog{height:100%;background:var(--green);width:0%;transition:width 1s linear;pointer-events:none}
+#pin-markers{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none}
+.pin-marker{position:absolute;top:0;bottom:0;width:1px;background:var(--green);transform:translateX(-50%);opacity:.8}
+.pin-marker::after{content:'';position:absolute;top:-3px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--green)}
+#vidwrap{flex:1;background:#050605;position:relative;overflow:hidden;min-height:0}
+#yt-frame{position:absolute;inset:0;width:100%;height:100%;border:none;display:none}
+#mp4-player{position:absolute;inset:0;width:100%;height:100%;display:none;background:#000}
+#mp4-player video{width:100%;height:100%;object-fit:contain}
+#novid{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:var(--bg)}
+.novid-ring{width:48px;height:48px;border-radius:50%;border:1px solid var(--white3);display:flex;align-items:center;justify-content:center;color:var(--white3);font-size:18px;opacity:.3}
+.novid-txt{font-size:11px;color:var(--white3);font-family:var(--mono);letter-spacing:.5px;opacity:.5}
+
+#npbar{background:var(--bg2);border-top:1px solid var(--border);padding:9px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+#np-title{flex:1;font-size:11px;color:var(--white);font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#np-timecode{font-size:11px;color:var(--green);font-family:var(--mono);font-weight:600;flex-shrink:0;min-width:38px}
+#pin-toggle{background:var(--gfaint);border:1px solid var(--gborder);border-radius:4px;padding:4px 10px;color:var(--green);font-size:8px;font-family:var(--mono);cursor:pointer;letter-spacing:.5px;transition:all .15s}
+#pin-toggle:hover,#pin-toggle.active{background:rgba(0,230,118,.13);border-color:var(--green)}
+#skipbtn{background:transparent;border:1px solid var(--border);border-radius:4px;padding:4px 10px;color:var(--white3);font-size:9px;cursor:pointer;font-family:var(--sans);transition:all .15s}
+#skipbtn:hover{border-color:var(--white3);color:var(--white2)}
+#speed-btns{display:flex;gap:3px;flex-shrink:0}
+.speed-btn{background:transparent;border:1px solid var(--border);border-radius:4px;padding:4px 8px;color:var(--white3);font-size:8px;cursor:pointer;font-family:var(--mono);transition:all .15s;letter-spacing:.3px}
+.speed-btn:hover{border-color:var(--white3);color:var(--white2)}
+.speed-btn.active{border-color:var(--green);color:var(--green);background:var(--gfaint)}
+
+#pinarea{background:var(--bg2);border-top:1px solid var(--gborder);padding:9px 14px;flex-shrink:0;display:none}
+.pin-hint{font-size:7px;color:var(--green);font-family:var(--mono);margin-bottom:6px;letter-spacing:2px;opacity:.6;text-transform:uppercase}
+.pin-row{display:flex;gap:8px;align-items:center}
+.pin-tc{font-size:14px;color:var(--green);font-family:var(--mono);font-weight:600;flex-shrink:0;min-width:42px}
+#pin-input{flex:1;background:var(--bg3);border:1px solid var(--gborder);border-radius:5px;padding:7px 10px;color:var(--white);font-family:var(--sans);font-size:12px;outline:none;font-weight:300;transition:border-color .2s}
+#pin-input:focus{border-color:var(--green)}
+#pin-input::placeholder{color:var(--white3)}
+#pin-submit{background:var(--green);border:none;border-radius:5px;padding:7px 14px;color:#080908;font-family:var(--mono);font-size:9px;font-weight:600;cursor:pointer;flex-shrink:0;letter-spacing:.5px;transition:background .15s}
+#pin-submit:hover{background:var(--green2)}
+
+/* RIGHT */
+#right{width:268px;flex-shrink:0;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+#usersec{border-bottom:1px solid var(--border);flex-shrink:0}
+#ulist{padding:6px 10px;display:flex;flex-wrap:wrap;gap:4px;max-height:70px;overflow-y:auto}
+.uchip{display:flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:2px 8px 2px 4px;font-size:9px;color:var(--white2)}
+.rtabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.rtab{flex:1;padding:9px 0;font-size:7px;font-family:var(--mono);letter-spacing:1.5px;color:var(--white3);text-transform:uppercase;text-align:center;background:none;border:none;border-bottom:1px solid transparent;cursor:pointer;transition:all .15s}
+.rtab:hover{color:var(--white2)}
+.rtab.active{color:var(--green);border-bottom-color:var(--green)}
+.rpanel{flex:1;display:none;flex-direction:column;min-height:0;overflow:hidden}
+.rpanel.active{display:flex}
+
+/* PINS */
+#pins-toolbar{padding:7px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.pts-label{font-size:8px;color:var(--white3);font-family:var(--mono)}
+#export-btn{background:var(--green);border:none;border-radius:4px;padding:4px 10px;color:#080908;font-size:8px;font-weight:600;cursor:pointer;font-family:var(--mono);letter-spacing:.5px;transition:background .15s}
+#export-btn:hover{background:var(--green2)}
+#export-btn:disabled{opacity:.35;cursor:default}
+#pins-list{flex:1;overflow-y:auto;padding:6px}
+#pins-list::-webkit-scrollbar{width:2px}
+#pins-list::-webkit-scrollbar-thumb{background:var(--bg4)}
+.pins-empty{text-align:center;color:var(--white3);font-size:9px;padding:24px 12px;line-height:1.9;font-family:var(--mono)}
+.pin-card{background:var(--bg3);border:1px solid var(--gborder);border-radius:6px;padding:8px 9px;margin-bottom:5px;cursor:pointer;transition:background .1s;position:relative}
+.pin-card:hover{background:var(--bg4)}
+.pin-card:hover .pin-del{opacity:1}
+.pin-card-top{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.pin-tc-badge{font-family:var(--mono);font-size:9px;font-weight:600;color:var(--green);background:var(--gfaint);border:1px solid var(--gborder);border-radius:3px;padding:2px 6px}
+.pin-author{font-size:8px;color:var(--white3);font-family:var(--mono);flex:1}
+.pin-del{opacity:0;background:none;border:none;color:var(--white3);cursor:pointer;font-size:12px;padding:1px;line-height:1;transition:all .1s}
+.pin-del:hover{color:var(--red)}
+.pin-note{font-size:11px;color:var(--white);line-height:1.55;font-weight:300}
+
+/* CHAT */
+#msgs{flex:1;overflow-y:auto;padding:5px 10px;display:flex;flex-direction:column;gap:1px}
+#msgs::-webkit-scrollbar{width:2px}
+#msgs::-webkit-scrollbar-thumb{background:var(--bg4)}
+.cmsg{display:flex;gap:6px;align-items:flex-start;padding:3px 0;animation:fin .15s ease}
+@keyframes fin{from{opacity:0;transform:translateY(2px)}to{opacity:1;transform:none}}
+.cmsg.sys{justify-content:center;padding:4px 0}
+.sys-t{font-size:8px;color:var(--white3);font-style:italic;font-family:var(--mono)}
+.cav{font-size:13px;flex-shrink:0;line-height:1.5}
+.cc{flex:1;min-width:0}
+.cn{font-size:8px;color:var(--green);font-weight:500;margin-bottom:1px;font-family:var(--mono)}
+.ct{font-size:11px;color:var(--white2);line-height:1.5;word-break:break-word;font-weight:300}
+.ctime{font-size:8px;color:var(--white3);font-family:var(--mono);flex-shrink:0;margin-top:3px}
+.cmsg.pinmsg .cc{background:var(--gfaint);border:1px solid var(--gborder);border-radius:5px;padding:5px 7px}
+.pin-chat-tc{display:inline-block;font-family:var(--mono);font-size:8px;font-weight:600;color:var(--green);margin-bottom:2px;cursor:pointer;letter-spacing:.3px}
+.pin-chat-tc:hover{text-decoration:underline}
+#chatinput{padding:8px 9px;border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:6px}
+#ci{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:6px 9px;color:var(--white);font-family:var(--sans);font-size:11px;outline:none;resize:none;transition:border-color .2s;height:32px;max-height:64px;font-weight:300}
+#ci:focus{border-color:var(--green)}
+#ci::placeholder{color:var(--white3)}
+#sendbtn{background:var(--green);border:none;border-radius:5px;padding:6px 11px;color:#080908;font-size:12px;cursor:pointer;flex-shrink:0;font-weight:700;align-self:flex-end;transition:background .15s}
+#sendbtn:hover{background:var(--green2)}
+
+/* TOAST */
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--bg3);border:1px solid var(--gborder);border-radius:6px;padding:7px 16px;font-size:10px;color:var(--white);font-family:var(--mono);opacity:0;transition:all .25s;pointer-events:none;z-index:999;white-space:nowrap;letter-spacing:.3px}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:1px}
+</style>
+</head>
+<body>
+<div id="root">
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="lcard">
+    <div class="llogo">◉ live brief</div>
+    <div class="lsub">live review platform</div>
+    <div class="avatars" id="avpick">
+      <div class="av sel" data-av="🎬">🎬</div>
+      <div class="av" data-av="✂️">✂️</div>
+      <div class="av" data-av="🎞️">🎞️</div>
+      <div class="av" data-av="🎙️">🎙️</div>
+      <div class="av" data-av="🦊">🦊</div>
+      <div class="av" data-av="🐺">🐺</div>
+      <div class="av" data-av="⚡">⚡</div>
+      <div class="av" data-av="🔥">🔥</div>
+      <div class="av" data-av="🌙">🌙</div>
+      <div class="av" data-av="👁️">👁️</div>
+    </div>
+    <input class="linput" id="nameinput" placeholder="Your name..." maxlength="20" autocomplete="off">
+    <button class="lbtn" id="joinbtn">ENTER ROOM →</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div id="hdr">
+  <div class="logo">◉ live brief</div>
+  <div class="hdivider"></div>
+  <div class="rlabel">review</div>
+  <div class="hsp"></div>
+  <div class="uc"><span class="dot"></span><span id="ucnum">0</span>&nbsp;in room</div>
+  <div class="mebadge"><span id="me-av" style="font-size:14px">🎬</span><span id="me-nm">—</span></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- LEFT -->
+  <div id="left">
+    <div class="ph">Queue <span class="pbadge" id="qcount">0</span></div>
+
+    <div id="addarea">
+      <div class="add-tabs">
+        <button class="add-tab active" data-pane="yt">YouTube</button>
+        <button class="add-tab" data-pane="mp4">Upload MP4</button>
+        <button class="add-tab" data-pane="lib">Library</button>
+      </div>
+
+      <!-- YouTube pane -->
+      <div class="add-pane active" id="pane-yt">
+        <div class="addrow">
+          <input class="addinput" id="urlinput" placeholder="Paste YouTube URL..." autocomplete="off">
+          <button class="addbtn" id="addbtn">Add</button>
+        </div>
+        <div id="preview"></div>
+      </div>
+
+      <!-- Upload pane -->
+      <div class="add-pane" id="pane-mp4">
+        <div id="upload-drop">
+          <input type="file" id="file-input" accept="video/*" multiple>
+          <div class="upload-icon">↑</div>
+          <div class="upload-txt">Drop MP4 / MOV here</div>
+          <div class="upload-sub">or click to browse</div>
+        </div>
+        <div id="upload-progress">
+          <div class="prog-bar-wrap"><div class="prog-bar-fill" id="upload-bar"></div></div>
+          <div class="prog-label" id="upload-label">Uploading…</div>
+        </div>
+      </div>
+
+      <!-- Library pane -->
+      <div class="add-pane" id="pane-lib">
+        <div id="lib-list"><div class="lib-empty">No uploads yet</div></div>
+      </div>
+    </div>
+
+    <!-- Queue -->
+    <div id="qlist"><div class="qempty">Add a YouTube URL or<br>upload an MP4 to begin</div></div>
+  </div>
+
+  <!-- CENTER -->
+  <div id="center">
+    <div id="progwrap">
+      <div id="prog"></div>
+      <div id="pin-markers"></div>
+    </div>
+    <div id="vidwrap">
+      <div id="novid">
+        <div class="novid-ring">▶</div>
+        <div class="novid-txt">nothing playing</div>
+      </div>
+      <iframe id="yt-frame" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+      <div id="mp4-player"><video id="mp4-video" controls></video></div>
+    </div>
+    <div id="npbar">
+      <div id="np-title">Nothing playing</div>
+      <div id="np-timecode">0:00</div>
+      <div id="speed-btns">
+        <button class="speed-btn active" data-speed="1">1×</button>
+        <button class="speed-btn" data-speed="1.5">1.5×</button>
+        <button class="speed-btn" data-speed="2">2×</button>
+        <button class="speed-btn" data-speed="3">3×</button>
+      </div>
+      <button id="pin-toggle">◈ PIN</button>
+      <button id="skipbtn">Skip ›</button>
+    </div>
+    <div id="pinarea">
+      <div class="pin-hint">◈ timecode note</div>
+      <div class="pin-row">
+        <div class="pin-tc" id="pin-tc-display">0:00</div>
+        <input id="pin-input" placeholder="Your note — stamps on Enter..." autocomplete="off">
+        <button id="pin-submit">PIN IT</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div id="right">
+    <div id="usersec">
+      <div class="ph">Viewers <span class="pbadge" id="ubadge">0</span></div>
+      <div id="ulist"></div>
+    </div>
+    <div class="rtabs">
+      <button class="rtab active" data-tab="pins">◈ Notes</button>
+      <button class="rtab" data-tab="chat">Chat</button>
+    </div>
+    <div class="rpanel active" id="pins-panel">
+      <div id="pins-toolbar">
+        <span class="pts-label" id="pin-count-label">0 notes</span>
+        <button id="export-btn" disabled>↓ EXPORT BRIEF</button>
+      </div>
+      <div id="pins-list"><div class="pins-empty">No notes yet.<br>Click ◈ PIN while watching.</div></div>
+    </div>
+    <div class="rpanel" id="chat-panel">
+      <div id="msgs"></div>
+      <div id="chatinput">
+        <textarea id="ci" placeholder="Say something..." rows="1" maxlength="300"></textarea>
+        <button id="sendbtn">↑</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+<div id="toast"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+let socket, me = {}, selectedAv = '🎬';
+let currentVideo = null, currentStartTime = null;
+let videoDuration = 0, pins = [], progressTimer = null;
+let pinMode = false, currentSeconds = 0;
+
+// ===== LOGIN =====
+document.querySelectorAll('.av').forEach(el => {
+  el.addEventListener('click', function() {
+    document.querySelectorAll('.av').forEach(e => e.classList.remove('sel'));
+    this.classList.add('sel'); selectedAv = this.dataset.av;
+  });
+});
+document.getElementById('joinbtn').addEventListener('click', join);
+document.getElementById('nameinput').addEventListener('keydown', e => { if (e.key === 'Enter') join(); });
+
+function join() {
+  const name = document.getElementById('nameinput').value.trim();
+  if (!name) { document.getElementById('nameinput').style.borderColor = 'var(--red)'; return; }
+  me = { name, avatar: selectedAv };
+  document.getElementById('me-av').textContent = selectedAv;
+  document.getElementById('me-nm').textContent = name;
+  const lg = document.getElementById('login');
+  lg.style.opacity = '0'; setTimeout(() => lg.style.display = 'none', 300);
+  socket = io(); setupSocket();
+  socket.emit('join', { username: name, avatar: selectedAv });
+  loadLibrary();
+}
+
+// ===== ADD TABS =====
+document.querySelectorAll('.add-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.add-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.add-pane').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('pane-' + tab.dataset.pane).classList.add('active');
+    if (tab.dataset.pane === 'lib') loadLibrary();
+  });
+});
+
+// ===== YOUTUBE =====
+document.getElementById('urlinput').addEventListener('keydown', e => { if (e.key === 'Enter') addYouTube(); });
+document.getElementById('addbtn').addEventListener('click', addYouTube);
+
+let prevDebounce = null;
+document.getElementById('urlinput').addEventListener('input', function() {
+  clearTimeout(prevDebounce);
+  const vid = extractId(this.value.trim());
+  if (!vid) { document.getElementById('preview').style.display = 'none'; return; }
+  prevDebounce = setTimeout(async () => {
+    const info = await fetchYTInfo(vid);
+    if (!info) return;
+    const p = document.getElementById('preview');
+    p.style.display = 'block';
+    p.innerHTML = `<div class="prev-item" onclick="addYTDirect('${vid}','${info.title.replace(/'/g,"&#39;")}')">
+      <img class="prev-thumb" src="https://i.ytimg.com/vi/${vid}/mqdefault.jpg" alt="">
+      <div class="prev-title">${esc(info.title)}</div>
+    </div>`;
+  }, 400);
+});
+
+async function addYouTube() {
+  const val = document.getElementById('urlinput').value.trim();
+  const vid = extractId(val);
+  if (!vid) { toast('Enter a valid YouTube URL'); return; }
+  const btn = document.getElementById('addbtn');
+  btn.textContent = '…'; btn.disabled = true;
+  const info = await fetchYTInfo(vid);
+  btn.textContent = 'Add'; btn.disabled = false;
+  if (!info) { toast('Could not load video'); return; }
+  socket.emit('add_to_queue', { type: 'youtube', videoId: vid, title: info.title, thumbnail: `https://i.ytimg.com/vi/${vid}/mqdefault.jpg` });
+  document.getElementById('urlinput').value = '';
+  document.getElementById('preview').style.display = 'none';
+}
+
+function addYTDirect(vid, title) {
+  const t = document.createElement('textarea'); t.innerHTML = title;
+  socket.emit('add_to_queue', { type: 'youtube', videoId: vid, title: t.value, thumbnail: `https://i.ytimg.com/vi/${vid}/mqdefault.jpg` });
+  document.getElementById('urlinput').value = '';
+  document.getElementById('preview').style.display = 'none';
+}
+
+// ===== MP4 UPLOAD =====
+const dropZone = document.getElementById('upload-drop');
+const fileInput = document.getElementById('file-input');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); uploadFiles(e.dataTransfer.files); });
+fileInput.addEventListener('change', () => uploadFiles(fileInput.files));
+
+async function uploadFiles(files) {
+  for (const file of files) {
+    if (!file.type.startsWith('video/')) { toast('Only video files supported'); continue; }
+    await uploadFile(file);
+  }
+  loadLibrary();
+  // Switch to library tab
+  document.querySelectorAll('.add-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.add-pane').forEach(p => p.classList.remove('active'));
+  document.querySelector('[data-pane="lib"]').classList.add('active');
+  document.getElementById('pane-lib').classList.add('active');
+}
+
+async function uploadFile(file) {
+  const progressWrap = document.getElementById('upload-progress');
+  const bar = document.getElementById('upload-bar');
+  const label = document.getElementById('upload-label');
+  progressWrap.style.display = 'block';
+  label.textContent = `Uploading ${file.name}…`;
+  bar.style.width = '0%';
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const formData = new FormData();
+    formData.append('file', file);
+
+    xhr.upload.addEventListener('progress', e => {
+      if (e.lengthComputable) {
+        const pct = Math.round(e.loaded / e.total * 100);
+        bar.style.width = pct + '%';
+        label.textContent = `Uploading ${file.name}… ${pct}%`;
+      }
+    });
+
+    xhr.addEventListener('load', () => {
+      if (xhr.status === 200) {
+        bar.style.width = '100%';
+        label.textContent = `✓ ${file.name} uploaded`;
+        setTimeout(() => { progressWrap.style.display = 'none'; }, 2000);
+        toast(`${file.name} uploaded to library`);
+        resolve(JSON.parse(xhr.responseText));
+      } else {
+        label.textContent = `✗ Upload failed`;
+        toast('Upload failed — check file size');
+        reject();
+      }
+    });
+
+    xhr.addEventListener('error', () => { toast('Upload failed'); reject(); });
+    xhr.open('POST', '/upload');
+    xhr.send(formData);
+  });
+}
+
+// ===== LIBRARY =====
+async function loadLibrary() {
+  const list = document.getElementById('lib-list');
+  try {
+    const r = await fetch('/videos');
+    const files = await r.json();
+    if (!files.length) { list.innerHTML = '<div class="lib-empty">No uploads yet</div>'; return; }
+    list.innerHTML = files.map(f => `
+      <div class="lib-item">
+        <span class="lib-icon">▶</span>
+        <span class="lib-name" title="${esc(f.name)}">${esc(f.name)}</span>
+        <span class="lib-size">${fmtSize(f.size)}</span>
+        <button class="lib-add" onclick="addMP4ToQueue('${esc(f.key)}','${esc(f.name)}','${esc(f.url)}')">+ Add</button>
+      </div>
+    `).join('');
+  } catch (e) {
+    list.innerHTML = '<div class="lib-empty">Could not load library</div>';
+  }
+}
+
+function addMP4ToQueue(key, name, url) {
+  socket.emit('add_to_queue', { type: 'mp4', key, title: name, url, thumbnail: null });
+  toast(`"${name}" added to queue`);
+}
+
+function fmtSize(bytes) {
+  if (bytes > 1e9) return (bytes / 1e9).toFixed(1) + 'GB';
+  if (bytes > 1e6) return (bytes / 1e6).toFixed(0) + 'MB';
+  return (bytes / 1e3).toFixed(0) + 'KB';
+}
+
+// ===== SOCKET =====
+function setupSocket() {
+  socket.on('room_state', state => {
+    renderUsers(state.users); renderQueue(state.queue, state.currentVideo);
+    pins = state.pins || []; renderPins();
+    state.chat.forEach(m => renderMsg(m));
+    if (state.currentVideo) {
+      currentVideo = state.currentVideo; updateNP(currentVideo);
+      currentStartTime = Date.now() - (state.position || 0) * 1000;
+      tryPlay(currentVideo, state.position || 0);
+    }
+  });
+
+  socket.on('play_video', ({ video, position, queue, pins: p }) => {
+    currentVideo = video; pins = p || []; currentStartTime = Date.now() - (position || 0) * 1000;
+    renderQueue(queue, video); renderPins(); updateNP(video);
+    resetSpeedBtns();
+    tryPlay(video, position || 0);
+    addSysMsg(`Now playing: ${video.title.slice(0, 50)}`);
+  });
+
+  socket.on('seek', ({ seconds }) => {
+    currentStartTime = Date.now() - seconds * 1000;
+    if (currentVideo?.type === 'mp4') {
+      document.getElementById('mp4-video').currentTime = seconds;
+    } else if (currentVideo?.type === 'youtube' && ytPlayer?.seekTo) {
+      isSyncing = true;
+      ytPlayer.seekTo(seconds, true);
+      setTimeout(() => { isSyncing = false; }, 600);
+    }
+  });
+
+  socket.on('remote_pause', ({ seconds, by }) => {
+    if (currentVideo?.type === 'youtube' && ytPlayer?.pauseVideo) {
+      isSyncing = true;
+      ytPlayer.seekTo(seconds, true);
+      ytPlayer.pauseVideo();
+      stopYTPolling();
+      setTimeout(() => { isSyncing = false; }, 600);
+    }
+    addSysMsg(`${by || 'Someone'} paused`);
+  });
+
+  socket.on('remote_play', ({ seconds, by }) => {
+    if (currentVideo?.type === 'youtube' && ytPlayer?.playVideo) {
+      isSyncing = true;
+      ytPlayer.seekTo(seconds, true);
+      ytPlayer.playVideo();
+      setTimeout(() => { isSyncing = false; }, 600);
+    }
+    addSysMsg(`${by || 'Someone'} resumed`);
+  });
+
+  socket.on('video_ended', () => {
+    currentVideo = null; currentStartTime = null; pins = [];
+    stopVideo(); renderQueue([], null); renderPins(); updateNP(null);
+  });
+
+  socket.on('queue_update', q => renderQueue(q, currentVideo));
+  socket.on('users_update', u => renderUsers(u));
+  socket.on('chat_message', m => renderMsg(m));
+
+  socket.on('pin_added', pin => {
+    pins.push(pin); pins.sort((a, b) => a.seconds - b.seconds);
+    renderPins(); renderPinMarkers();
+  });
+
+  socket.on('pin_deleted', ({ id }) => {
+    pins = pins.filter(p => p.id !== id); renderPins(); renderPinMarkers();
+  });
+}
+
+// ===== PLAYBACK =====
+let ytPlayer = null;
+let isSyncing = false;
+
+function tryPlay(video, startSeconds) {
+  if (video.type === 'mp4') { playMP4(video, startSeconds); }
+  else {
+    if (window.YT && YT.Player) createYTPlayer(video, startSeconds);
+    else setTimeout(() => tryPlay(video, startSeconds), 200);
+  }
+}
+
+function createYTPlayer(video, startSeconds) {
+  document.getElementById('novid').style.display = 'none';
+  document.getElementById('mp4-player').style.display = 'none';
+  document.getElementById('yt-frame').style.display = 'none';
+
+  // Destroy old player div and recreate it so YT.Player gets a fresh element
+  const wrap = document.getElementById('vidwrap');
+  const old = document.getElementById('yt-player-div');
+  if (old) old.remove();
+  const div = document.createElement('div');
+  div.id = 'yt-player-div';
+  div.style.cssText = 'position:absolute;inset:0;width:100%;height:100%';
+  wrap.appendChild(div);
+
+  ytPlayer = new YT.Player('yt-player-div', {
+    videoId: video.videoId,
+    playerVars: { autoplay: 1, controls: 1, rel: 0, modestbranding: 1, start: Math.floor(startSeconds || 0) },
+    events: {
+      onReady(e) {
+        videoDuration = e.target.getDuration() || 0;
+        e.target.seekTo(startSeconds || 0, true);
+        e.target.playVideo();
+        startYTPolling();
+        renderPinMarkers();
+      },
+      onStateChange(e) {
+        if (isSyncing) return;
+        const S = YT.PlayerState;
+        if (e.data === S.PLAYING) {
+          startYTPolling();
+          if (socket) socket.emit('play', { seconds: ytPlayer.getCurrentTime() });
+        }
+        if (e.data === S.PAUSED) {
+          stopYTPolling();
+          if (socket) socket.emit('pause', { seconds: ytPlayer.getCurrentTime() });
+        }
+        if (e.data === S.ENDED) {
+          stopYTPolling();
+          if (socket) socket.emit('video_ended', { videoId: currentVideo?.videoId });
+        }
+        if (e.data === S.BUFFERING) {
+          stopYTPolling();
+        }
+      }
+    }
+  });
+}
+
+function reloadYT(video, seconds) {
+  if (ytPlayer && ytPlayer.loadVideoById) {
+    isSyncing = true;
+    ytPlayer.loadVideoById({ videoId: video.videoId, startSeconds: Math.floor(seconds) });
+    setTimeout(() => { isSyncing = false; }, 600);
+  }
+}
+
+// Poll YT player every 500ms to get accurate current time
+let ytPollTimer = null;
+function startYTPolling() {
+  stopYTPolling();
+  ytPollTimer = setInterval(() => {
+    if (!ytPlayer || !ytPlayer.getCurrentTime) return;
+    const t = ytPlayer.getCurrentTime();
+    const d = ytPlayer.getDuration() || videoDuration;
+    currentSeconds = t;
+    if (d > 0) videoDuration = d;
+    document.getElementById('np-timecode').textContent = formatTime(t);
+    if (pinMode) document.getElementById('pin-tc-display').textContent = formatTime(t);
+    const bar = document.getElementById('prog');
+    if (d > 0) bar.style.width = Math.min(100, t / d * 100) + '%';
+  }, 500);
+}
+function stopYTPolling() {
+  if (ytPollTimer) { clearInterval(ytPollTimer); ytPollTimer = null; }
+}
+
+function playMP4(video, startSeconds) {
+  document.getElementById('novid').style.display = 'none';
+  document.getElementById('yt-frame').style.display = 'none';
+  document.getElementById('yt-frame').src = '';
+  const playerEl = document.getElementById('mp4-player');
+  const videoEl = document.getElementById('mp4-video');
+  playerEl.style.display = 'block';
+
+  videoEl.src = video.url;
+  videoEl.load();
+  videoEl.addEventListener('loadedmetadata', () => {
+    videoDuration = videoEl.duration;
+    videoEl.currentTime = startSeconds || 0;
+    videoEl.playbackRate = currentSpeed;
+    videoEl.play().catch(() => {});
+    startProgressTimer(startSeconds || 0, videoDuration);
+    renderPinMarkers();
+  }, { once: true });
+
+  videoEl.addEventListener('timeupdate', () => {
+    currentSeconds = videoEl.currentTime;
+    document.getElementById('np-timecode').textContent = formatTime(currentSeconds);
+    if (pinMode) document.getElementById('pin-tc-display').textContent = formatTime(currentSeconds);
+    if (videoDuration > 0) document.getElementById('prog').style.width = Math.min(100, currentSeconds / videoDuration * 100) + '%';
+  });
+
+  videoEl.addEventListener('ended', () => { socket.emit('video_ended'); stopProgressTimer(); });
+}
+
+function stopVideo() {
+  stopYTPolling(); stopProgressTimer();
+  if (ytPlayer && ytPlayer.destroy) { ytPlayer.destroy(); ytPlayer = null; }
+  const div = document.getElementById('yt-player-div');
+  if (div) div.remove();
+  const frame = document.getElementById('yt-frame');
+  frame.src = ''; frame.style.display = 'none';
+  document.getElementById('mp4-player').style.display = 'none';
+  document.getElementById('mp4-video').src = '';
+  document.getElementById('novid').style.display = 'flex';
+  updateNP(null);
+  document.getElementById('prog').style.width = '0%';
+  document.getElementById('np-timecode').textContent = '0:00';
+  document.getElementById('pin-markers').innerHTML = '';
+}
+
+function startProgressTimer(startSec, duration) {
+  stopProgressTimer(); currentSeconds = startSec || 0;
+  if (duration > 0) videoDuration = duration;
+  const bar = document.getElementById('prog');
+  bar.style.transition = 'none';
+  bar.style.width = videoDuration > 0 ? (currentSeconds / videoDuration * 100) + '%' : '0%';
+  setTimeout(() => { bar.style.transition = 'width 1s linear'; }, 50);
+  // MP4 uses timeupdate events directly — no interval needed here
+  // YouTube uses startYTPolling() — no interval needed here either
+}
+
+function stopProgressTimer() {
+  if (progressTimer) { clearInterval(progressTimer); progressTimer = null; }
+}
+
+window.onYouTubeIframeAPIReady = () => {};
+(function(){ const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s); })();
+
+// ===== PIN MODE =====
+document.getElementById('pin-toggle').addEventListener('click', () => {
+  if (!currentVideo) { toast('No video playing'); return; }
+  pinMode = !pinMode;
+  document.getElementById('pin-toggle').classList.toggle('active', pinMode);
+  document.getElementById('pinarea').style.display = pinMode ? 'block' : 'none';
+  if (pinMode) {
+    document.getElementById('pin-tc-display').textContent = formatTime(currentSeconds);
+    document.getElementById('pin-input').focus();
+    switchTab('pins');
+  }
+});
+
+document.getElementById('pin-submit').addEventListener('click', submitPin);
+document.getElementById('pin-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); submitPin(); } });
+
+function submitPin() {
+  const note = document.getElementById('pin-input').value.trim();
+  if (!note) return;
+  // Always get the freshest possible time from the player
+  let secs = currentSeconds;
+  if (currentVideo?.type === 'youtube' && ytPlayer?.getCurrentTime) {
+    secs = ytPlayer.getCurrentTime();
+  } else if (currentVideo?.type === 'mp4') {
+    secs = document.getElementById('mp4-video').currentTime || currentSeconds;
+  }
+  socket.emit('add_pin', { seconds: secs, note });
+  document.getElementById('pin-input').value = '';
+  toast(`Pinned at ${formatTime(secs)}`);
+  document.getElementById('pin-input').focus();
+}
+
+function seekToPin(seconds) {
+  socket.emit('seek_to', { seconds });
+  toast(`Jumping to ${formatTime(seconds)}`);
+}
+
+// ===== PROGRESS BAR CLICK =====
+document.getElementById('progwrap').addEventListener('click', e => {
+  if (!currentVideo || videoDuration <= 0) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  socket.emit('seek_to', { seconds: ((e.clientX - rect.left) / rect.width) * videoDuration });
+});
+
+function renderPinMarkers() {
+  const c = document.getElementById('pin-markers'); c.innerHTML = '';
+  if (!currentVideo || videoDuration <= 0) return;
+  pins.forEach(pin => {
+    const el = document.createElement('div');
+    el.className = 'pin-marker';
+    el.style.left = Math.min(100, pin.seconds / videoDuration * 100) + '%';
+    el.title = `${formatTime(pin.seconds)}: ${pin.note}`;
+    c.appendChild(el);
+  });
+}
+
+// ===== RENDER PINS =====
+function renderPins() {
+  const list = document.getElementById('pins-list');
+  document.getElementById('pin-count-label').textContent = pins.length + ' note' + (pins.length !== 1 ? 's' : '');
+  document.getElementById('export-btn').disabled = pins.length === 0;
+  if (!pins.length) { list.innerHTML = '<div class="pins-empty">No notes yet.<br>Click ◈ PIN while watching.</div>'; return; }
+  list.innerHTML = [...pins].sort((a,b) => a.seconds - b.seconds).map(pin => `
+    <div class="pin-card" onclick="seekToPin(${pin.seconds})">
+      <div class="pin-card-top">
+        <span class="pin-tc-badge">${formatTime(pin.seconds)}</span>
+        <span class="pin-author">${esc(pin.author)}</span>
+        <button class="pin-del" onclick="event.stopPropagation();socket.emit('delete_pin',{id:${pin.id}})" title="Delete">✕</button>
+      </div>
+      <div class="pin-note">${esc(pin.note)}</div>
+    </div>`).join('');
+}
+
+// ===== EXPORT =====
+document.getElementById('export-btn').addEventListener('click', () => {
+  if (!pins.length) return;
+  const sorted = [...pins].sort((a,b) => a.seconds - b.seconds);
+  const title = currentVideo?.title || 'Review Session';
+  const url = currentVideo?.type === 'youtube' ? `https://www.youtube.com/watch?v=${currentVideo.videoId}` : (currentVideo?.url || '');
+  const now = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+
+  const rows = sorted.map(pin => `
+    <tr>
+      <td style="width:75px;padding:10px 12px;border:1px solid #e5e7eb;font-family:monospace;font-size:13px;font-weight:600;color:#059669;white-space:nowrap;vertical-align:top">${formatTime(pin.seconds)}</td>
+      <td style="width:100px;padding:10px 12px;border:1px solid #e5e7eb;font-size:12px;color:#6b7280;vertical-align:top;font-family:monospace">${esc(pin.author)}</td>
+      <td style="padding:10px 12px;border:1px solid #e5e7eb;font-size:13px;line-height:1.6;vertical-align:top">${esc(pin.note)}</td>
+      <td style="width:130px;padding:10px 12px;border:1px solid #e5e7eb;font-size:12px;color:#9ca3af;vertical-align:top">${url ? `<a href="${url}${currentVideo?.type === 'youtube' ? '&t='+pin.seconds+'s' : ''}" style="color:#059669;font-family:monospace">▶ ${formatTime(pin.seconds)}</a>` : formatTime(pin.seconds)}</td>
+    </tr>`).join('');
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Review Brief — ${esc(title)}</title>
+<style>body{font-family:Arial,sans-serif;max-width:900px;margin:40px auto;padding:0 24px;color:#111}
+h1{font-size:20px;margin-bottom:4px;font-weight:600}
+.meta{font-size:12px;color:#6b7280;margin-bottom:6px;font-family:monospace}
+.vlink{font-size:12px;color:#059669;margin-bottom:28px;display:block;font-family:monospace}
+table{width:100%;border-collapse:collapse;margin-top:12px}
+thead tr{background:#f9fafb}
+thead th{padding:10px 12px;border:1px solid #e5e7eb;font-size:11px;text-align:left;color:#374151;text-transform:uppercase;letter-spacing:.5px}
+.footer{margin-top:28px;font-size:11px;color:#9ca3af;border-top:1px solid #e5e7eb;padding-top:10px;font-family:monospace}
+</style></head><body>
+<h1>${esc(title)}</h1>
+<div class="meta">Exported ${now} · ${sorted.length} notes · ${[...new Set(sorted.map(p=>p.author))].join(', ')}</div>
+${url ? `<a class="vlink" href="${url}">${url}</a>` : ''}
+<table><thead><tr><th>Timecode</th><th>Reviewer</th><th>Note</th><th>Link</th></tr></thead><tbody>${rows}</tbody></table>
+<div class="footer">Live Brief · ${sorted.length} timecode notes</div>
+</body></html>`;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `brief-${title.slice(0,30).replace(/[^a-z0-9]/gi,'-').toLowerCase()}.html`;
+  a.click();
+  toast('Brief exported — opens in Word or Google Docs');
+});
+
+// ===== QUEUE =====
+function renderQueue(queue, current) {
+  const list = document.getElementById('qlist');
+  document.getElementById('qcount').textContent = (current ? 1 : 0) + (queue?.length || 0);
+  const items = current ? [{ ...current, isNow: true }, ...(queue || [])] : (queue || []);
+  if (!items.length) { list.innerHTML = '<div class="qempty">Add a YouTube URL or<br>upload an MP4 to begin</div>'; return; }
+  list.innerHTML = items.map(item => `
+    <div class="qitem ${item.isNow ? 'now' : ''}">
+      ${item.thumbnail ? `<img class="qi-thumb" src="${item.thumbnail}" alt="" onerror="this.style.display='none'">` : `<div class="qi-thumb">${item.type === 'mp4' ? '▶' : '▷'}</div>`}
+      <div class="qi-info">
+        <div class="qi-title">${esc(item.title)}</div>
+        <div class="qi-meta">
+          ${item.isNow ? '<span class="nowbadge">NOW</span>' : ''}
+          <span class="typebadge">${item.type === 'mp4' ? 'MP4' : 'YT'}</span>
+          <span>${esc(item.addedBy)}</span>
+        </div>
+      </div>
+      ${!item.isNow ? `<button class="qrm" onclick="socket.emit('remove_from_queue',{id:${item.id}})">✕</button>` : ''}
+    </div>`).join('');
+}
+
+// ===== USERS =====
+function renderUsers(users) {
+  document.getElementById('ucnum').textContent = users.length;
+  document.getElementById('ubadge').textContent = users.length;
+  document.getElementById('ulist').innerHTML = users.map(u =>
+    `<div class="uchip"><span style="font-size:12px">${u.avatar}</span><span>${esc(u.username)}</span></div>`).join('');
+}
+
+// ===== CHAT =====
+document.getElementById('ci').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); } });
+document.getElementById('sendbtn').addEventListener('click', sendChat);
+function sendChat() {
+  const input = document.getElementById('ci');
+  const text = input.value.trim();
+  if (!text || !socket) return;
+  socket.emit('chat', { text }); input.value = '';
+}
+
+function addSysMsg(text) { renderMsg({ type: 'system', text, ts: Date.now() }); }
+
+function renderMsg(msg) {
+  const c = document.getElementById('msgs');
+  const div = document.createElement('div');
+  if (msg.type === 'system') {
+    div.className = 'cmsg sys';
+    div.innerHTML = `<span class="sys-t">${esc(msg.text)}</span>`;
+  } else if (msg.type === 'pin') {
+    div.className = 'cmsg pinmsg';
+    div.innerHTML = `<span class="cav">${msg.avatar||'🎬'}</span>
+      <div class="cc">
+        <div class="cn">${esc(msg.username)}</div>
+        <span class="pin-chat-tc" onclick="seekToPin(${msg.seconds})">◈ ${msg.label}</span>
+        <div class="ct">${esc(msg.text)}</div>
+      </div>
+      <div class="ctime">${fmtTs(msg.ts)}</div>`;
+  } else {
+    div.className = 'cmsg';
+    div.innerHTML = `<span class="cav">${msg.avatar||'🎬'}</span>
+      <div class="cc"><div class="cn">${esc(msg.username)}</div><div class="ct">${esc(msg.text)}</div></div>
+      <div class="ctime">${fmtTs(msg.ts)}</div>`;
+  }
+  c.appendChild(div); c.scrollTop = c.scrollHeight;
+}
+
+// ===== TABS =====
+document.querySelectorAll('.rtab').forEach(tab => {
+  tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+});
+function switchTab(name) {
+  document.querySelectorAll('.rtab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.rpanel').forEach(p => p.classList.toggle('active', p.id === name + '-panel'));
+}
+
+document.getElementById('skipbtn').addEventListener('click', () => socket?.emit('skip'));
+
+// ===== SPEED CONTROL =====
+let currentSpeed = 1;
+document.querySelectorAll('.speed-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentSpeed = parseFloat(btn.dataset.speed);
+    document.querySelectorAll('.speed-btn').forEach(b => b.classList.toggle('active', b === btn));
+    const videoEl = document.getElementById('mp4-video');
+    const mp4Active = document.getElementById('mp4-player').style.display !== 'none';
+    if (mp4Active && videoEl) {
+      videoEl.playbackRate = currentSpeed;
+      toast(`Speed: ${currentSpeed}×`);
+    } else if (currentVideo?.type === 'youtube') {
+      toast(`Speed: ${currentSpeed}× — for YouTube use ⚙ in the player`);
+    } else {
+      toast(`Speed: ${currentSpeed}× — play a video to apply`);
+    }
+  });
+});
+
+function resetSpeedBtns() {
+  currentSpeed = 1;
+  document.querySelectorAll('.speed-btn').forEach(b => b.classList.toggle('active', b.dataset.speed === '1'));
+}
+
+function updateNP(v) { document.getElementById('np-title').textContent = v ? v.title : 'Nothing playing'; }
+
+// ===== UTILS =====
+async function fetchYTInfo(videoId) {
+  try {
+    const r = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+    if (!r.ok) return null;
+    return await r.json();
+  } catch { return null; }
+}
+function extractId(url) {
+  for (const p of [/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/, /^([a-zA-Z0-9_-]{11})$/]) {
+    const m = url.match(p); if (m) return m[1];
+  }
+  return null;
+}
+function formatTime(s) {
+  s = Math.floor(s||0);
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+  return h > 0 ? `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}` : `${m}:${String(sec).padStart(2,'0')}`;
+}
+function fmtTs(ts) { return new Date(ts).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+let toastT = null;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('on');
+  if (toastT) clearTimeout(toastT);
+  toastT = setTimeout(() => el.classList.remove('on'), 2800);
+}
+document.addEventListener('click', e => {
+  if (!document.getElementById('addarea').contains(e.target))
+    document.getElementById('preview').style.display = 'none';
+});
+</script>
+</body>
+</html>
