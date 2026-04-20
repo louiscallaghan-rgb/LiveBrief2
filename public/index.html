@@ -237,7 +237,9 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:var(--
       <div class="av" data-av="👁️">👁️</div>
     </div>
     <input class="linput" id="nameinput" placeholder="Your name..." maxlength="20" autocomplete="off">
-    <button class="lbtn" id="joinbtn">ENTER ROOM →</button>
+    <button class="lbtn" id="joinbtn" style="display:none">ENTER ROOM →</button>
+    <button class="lbtn" id="googlebtn" onclick="signInWithGoogle()">Sign in with Google</button>
+    <div id="autherr" style="color:var(--red);font-size:13px;margin-top:8px;display:none">Access restricted to @flightstory.com accounts.</div>
   </div>
 </div>
 
@@ -365,7 +367,12 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:var(--
 <div id="toast"></div>
 
 <script src="/socket.io/socket.io.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
+const _supabase = supabase.createClient(
+  'https://jbibtehvpvgrscuucvew.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpiaWJ0ZWh2cHZncnNjdXVjdmV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2NzEzMDAsImV4cCI6MjA5MjI0NzMwMH0.v2LnObCL5Alhh88Jgbn5pWvH0sdMPM9aNcCfJMLp_OI'
+);
 let socket, me = {}, selectedAv = '🎬';
 let currentVideo = null, currentStartTime = null;
 let videoDuration = 0, pins = [], progressTimer = null;
@@ -380,6 +387,30 @@ document.querySelectorAll('.av').forEach(el => {
 });
 document.getElementById('joinbtn').addEventListener('click', join);
 document.getElementById('nameinput').addEventListener('keydown', e => { if (e.key === 'Enter') join(); });
+
+async function signInWithGoogle() {
+  await _supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.href }
+  });
+}
+
+async function checkAuth() {
+  const { data: { session } } = await _supabase.auth.getSession();
+  if (!session) return;
+  const email = session.user.email || '';
+  if (!email.endsWith('@flightstory.com')) {
+    await _supabase.auth.signOut();
+    document.getElementById('autherr').style.display = 'block';
+    return;
+  }
+  const name = session.user.user_metadata?.full_name?.split(' ')[0] || email.split('@')[0];
+  document.getElementById('nameinput').value = name;
+  document.getElementById('googlebtn').style.display = 'none';
+  document.getElementById('joinbtn').style.display = '';
+}
+
+checkAuth();
 
 function join() {
   const name = document.getElementById('nameinput').value.trim();
@@ -518,11 +549,10 @@ async function loadLibrary() {
     const files = await r.json();
     if (!files.length) { list.innerHTML = '<div class="lib-empty">No uploads yet</div>'; return; }
     list.innerHTML = files.map(f => `
-      <div class="lib-item">
+      <div class="lib-item" onclick="addMP4ToQueue('${esc(f.key)}','${esc(f.name)}','${esc(f.url)}')">
         <span class="lib-icon">▶</span>
         <span class="lib-name" title="${esc(f.name)}">${esc(f.name)}</span>
         <span class="lib-size">${fmtSize(f.size)}</span>
-        <button class="lib-add" onclick="addMP4ToQueue('${esc(f.key)}','${esc(f.name)}','${esc(f.url)}')">+ Add</button>
       </div>
     `).join('');
   } catch (e) {
@@ -885,7 +915,7 @@ function renderQueue(queue, current) {
   const items = current ? [{ ...current, isNow: true }, ...(queue || [])] : (queue || []);
   if (!items.length) { list.innerHTML = '<div class="qempty">Add a YouTube URL or<br>upload an MP4 to begin</div>'; return; }
   list.innerHTML = items.map(item => `
-    <div class="qitem ${item.isNow ? 'now' : ''}">
+    <div class="qitem ${item.isNow ? 'now' : ''}" ${!item.isNow ? `onclick="socket.emit('play_now',{id:${item.id}})" style="cursor:pointer"` : ''}>
       ${item.thumbnail ? `<img class="qi-thumb" src="${item.thumbnail}" alt="" onerror="this.style.display='none'">` : `<div class="qi-thumb">${item.type === 'mp4' ? '▶' : '▷'}</div>`}
       <div class="qi-info">
         <div class="qi-title">${esc(item.title)}</div>
@@ -895,7 +925,7 @@ function renderQueue(queue, current) {
           <span>${esc(item.addedBy)}</span>
         </div>
       </div>
-      ${!item.isNow ? `<button class="qrm" onclick="socket.emit('remove_from_queue',{id:${item.id}})">✕</button>` : ''}
+      ${!item.isNow ? `<button class="qrm" onclick="event.stopPropagation();socket.emit('remove_from_queue',{id:${item.id}})">✕</button>` : ''}
     </div>`).join('');
 }
 

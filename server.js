@@ -221,6 +221,17 @@ io.on('connection', (socket) => {
     io.emit('queue_update', roomState.queue);
   });
 
+  socket.on('play_now', ({ id }) => {
+    const idx = roomState.queue.findIndex(v => v.id === id);
+    if (idx === -1) return;
+    const [item] = roomState.queue.splice(idx, 1);
+    if (roomState.currentVideo) roomState.queue.unshift(roomState.currentVideo);
+    roomState.currentVideo = item;
+    roomState.currentStartTime = Date.now();
+    roomState.pins = [];
+    io.emit('play_video', { video: item, position: 0, queue: roomState.queue, pins: [] });
+  });
+
   socket.on('disconnect', () => {
     const user = roomState.users[socket.id];
     if (user) {
