@@ -6,6 +6,9 @@ const multer = require('multer');
 const { S3Client, PutObjectCommand, ListObjectsV2Command, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const { GetObjectCommand } = require('@aws-sdk/client-s3');
+const { createClient } = require('@supabase/supabase-js');
+
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 
 const app = express();
 const server = http.createServer(app);
@@ -93,6 +96,17 @@ let roomState = {
   chat: [], pins: [], users: {}
 };
 
+async function loadPersistedState() {
+  const [{ data: messages }, { data: pins }] = await Promise.all([
+    supabase.from('messages').select('*').order('created_at').limit(300),
+    supabase.from('pins').select('*').order('created_at')
+  ]);
+  if (messages) roomState.chat = messages.map(m => ({ type: 'user', username: m.username, avatar: m.avatar, text: m.content, ts: new Date(m.created_at).getTime() }));
+  if (pins) roomState.pins = pins.map(p => ({ id: p.id, seconds: p.time_seconds, note: p.note, author: p.username, avatar: p.avatar, videoId: p.video_key, ts: new Date(p.created_at).getTime() }));
+}
+
+loadPersistedState().catch(console.error);
+
 function getVideoPosition() {
   if (!roomState.currentVideo || !roomState.currentStartTime) return 0;
   return (Date.now() - roomState.currentStartTime) / 1000;
@@ -135,6 +149,7 @@ io.on('connection', (socket) => {
     roomState.chat.push(msg);
     if (roomState.chat.length > 300) roomState.chat.shift();
     io.emit('chat_message', msg);
+    supabase.from('messages').insert({ username: user.username, avatar: user.avatar, content: msg.text }).catch(console.error);
   });
 
   socket.on('add_pin', ({ seconds, note }) => {
@@ -148,6 +163,7 @@ io.on('connection', (socket) => {
     roomState.pins.push(pin);
     roomState.pins.sort((a, b) => a.seconds - b.seconds);
     io.emit('pin_added', pin);
+    supabase.from('pins').insert({ username: user.username, avatar: user.avatar, time_seconds: pin.seconds, note: pin.note, video_key: pin.videoId }).catch(console.error);
     const msg = { type: 'pin', username: user.username, avatar: user.avatar, text: note.trim(), seconds: pin.seconds, label: formatTime(pin.seconds), pinId: pin.id, ts: Date.now() };
     roomState.chat.push(msg);
     io.emit('chat_message', msg);
@@ -156,6 +172,7 @@ io.on('connection', (socket) => {
   socket.on('delete_pin', ({ id }) => {
     roomState.pins = roomState.pins.filter(p => p.id !== id);
     io.emit('pin_deleted', { id });
+    supabase.from('pins').delete().eq('id', id).catch(console.error);
   });
 
   socket.on('pause', ({ seconds }) => {
